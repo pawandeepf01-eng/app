@@ -18,11 +18,11 @@ const userSchema = new mongoose.Schema(
       required: true,
     },
 
-    role: {
-      type: String,
-      enum: ["user", "mechanic"],
-      required: true,
-    },
+   role: {
+  type: String,
+  enum: ["customer", "worker"],
+  required: true,
+},
 
     serviceType: {
       type: String,
