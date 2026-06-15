@@ -1,0 +1,66 @@
+const Job = require("../models/Job");
+
+const createJob = async (req, res) => {
+  try {
+    const { jobTitle, category, address, date, time, budget } = req.body;
+
+    const job = await Job.create({
+      userId: req.user.id,
+      jobTitle,
+      category,
+      address,
+      date,
+      time,
+      budget,
+      photo: req.file ? req.file.path : "",
+    });
+
+    res.status(201).json({
+      success: true,
+      message: "Job Posted Successfully",
+      job,
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
+const getJobs = async (req, res) => {
+  const page = parseInt(req.query.page) || 1;
+  const limit = 10;
+  const skip = (page - 1) * limit;
+
+  const search = req.query.search || "";
+
+  const filter = search
+    ? {
+        $or: [
+          { jobTitle: { $regex: search, $options: "i" } },
+          { category: { $regex: search, $options: "i" } },
+          { address: { $regex: search, $options: "i" } },
+        ],
+      }
+    : {};
+
+  const jobs = await Job.find(filter)
+    .sort({ createdAt: -1 })
+    .skip(skip)
+    .limit(limit);
+
+  const total = await Job.countDocuments(filter);
+
+  res.json({
+    success: true,
+    page,
+    totalPages: Math.ceil(total / limit),
+    jobs,
+  });
+};
+
+module.exports = {
+  createJob,
+  getJobs,
+};
