@@ -60,7 +60,30 @@ const getJobs = async (req, res) => {
   });
 };
 
+
+const getJobsByCategory = async (req, res) => {
+  try {
+    const { category } = req.params;
+
+    const jobs = await Job.find({
+      category: category,
+    });
+
+    res.status(200).json({
+      success: true,
+      count: jobs.length,
+      jobs,
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
 module.exports = {
   createJob,
   getJobs,
+  getJobsByCategory,
 };

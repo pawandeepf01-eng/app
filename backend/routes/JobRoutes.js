@@ -6,7 +6,7 @@ const authMiddleware = require("../middleware/authMiddleware");
 const upload = require("../middleware/upload");
 
 const {
-  createJob,getJobs
+  createJob,getJobs,getJobsByCategory
 } = require("../controllers/jobController");
 
 router.post(
@@ -17,5 +17,9 @@ router.post(
 );
 
 router.get("/", getJobs);
+router.get(
+  "/category/:category",
+  getJobsByCategory
+);
 
 module.exports = router;
