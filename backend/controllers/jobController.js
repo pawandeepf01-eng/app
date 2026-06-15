@@ -2,11 +2,11 @@ const Job = require("../models/job");
 
 const createJob = async (req, res) => {
   try {
-    const { jobTitle, category, address, date, time, budget } = req.body;
+    const { description, category, address, date, time, budget } = req.body;
 
     const job = await Job.create({
       userId: req.user.id,
-      jobTitle,
+      description,
       category,
       address,
       date,
@@ -59,7 +59,6 @@ const getJobs = async (req, res) => {
     jobs,
   });
 };
-
 
 const getJobsByCategory = async (req, res) => {
   try {

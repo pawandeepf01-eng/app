@@ -6,25 +6,20 @@ const jobSchema = new mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
     },
-    jobTitle: {
+    description: {
       type: String,
-      required: true,
     },
     category: {
       type: String,
-      required: true,
     },
     address: {
       type: String,
-      required: true,
     },
     date: {
       type: String,
-      required: true,
     },
     time: {
       type: String,
-      required: true,
     },
     budget: {
       type: Number,
@@ -33,7 +28,7 @@ const jobSchema = new mongoose.Schema(
       type: String,
     },
   },
-  { timestamps: true }
+  { timestamps: true },
 );
 
 module.exports = mongoose.model("Job", jobSchema);
