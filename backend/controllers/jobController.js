@@ -29,48 +29,40 @@ const createJob = async (req, res) => {
 };
 
 const getJobs = async (req, res) => {
-  const page = parseInt(req.query.page) || 1;
-  const limit = 10;
-  const skip = (page - 1) * limit;
-
-  const search = req.query.search || "";
-
-  const filter = search
-    ? {
-        $or: [
-          { jobTitle: { $regex: search, $options: "i" } },
-          { category: { $regex: search, $options: "i" } },
-          { address: { $regex: search, $options: "i" } },
-        ],
-      }
-    : {};
-
-  const jobs = await Job.find(filter)
-    .sort({ createdAt: -1 })
-    .skip(skip)
-    .limit(limit);
-
-  const total = await Job.countDocuments(filter);
-
-  res.json({
-    success: true,
-    page,
-    totalPages: Math.ceil(total / limit),
-    jobs,
-  });
-};
-
-const getJobsByCategory = async (req, res) => {
   try {
-    const { category } = req.params;
+    const page = parseInt(req.query.page) || 1;
+    const limit = 10;
+    const skip = (page - 1) * limit;
 
-    const jobs = await Job.find({
-      category: category,
-    });
+    const { search, category } = req.query;
 
-    res.status(200).json({
+    let filter = {};
+
+    
+    if (category) {
+      filter.category = category;
+    }
+
+
+    if (search) {
+      filter.$or = [
+        { jobTitle: { $regex: search, $options: "i" } },
+        { category: { $regex: search, $options: "i" } },
+        { address: { $regex: search, $options: "i" } },
+      ];
+    }
+
+    const jobs = await Job.find(filter)
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(limit);
+
+    const total = await Job.countDocuments(filter);
+
+    res.json({
       success: true,
-      count: jobs.length,
+      page,
+      totalPages: Math.ceil(total / limit),
       jobs,
     });
   } catch (error) {
@@ -80,9 +72,8 @@ const getJobsByCategory = async (req, res) => {
     });
   }
 };
-
 module.exports = {
   createJob,
   getJobs,
-  getJobsByCategory,
+
 };
