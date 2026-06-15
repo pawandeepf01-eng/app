@@ -5,7 +5,7 @@ require("dotenv").config();
 
 const connectDB = require("./config/db");
 const authRoutes = require("./routes/authRoutes");
-const jobRoutes = require("./routes/jobRoutes");
+const jobRoutes = require("./routes/JobRoutes");
 
 dotenv.config();
 
