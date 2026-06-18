@@ -183,9 +183,40 @@ const getWorkers = async (req, res) => {
   }
 };
 
+
+const updateProfile = async (req, res) => {
+  try {
+    const { name, phone, serviceType } = req.body;
+
+    const user = await User.findByIdAndUpdate(
+      req.user.id,
+      {
+        name,
+        phone,
+        serviceType,
+      },
+      {
+        new: true,
+      }
+    ).select("-password");
+
+    res.status(200).json({
+      success: true,
+      message: "Profile Updated Successfully",
+      user,
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
 module.exports = {
   register,
   login,
   forgotPassword,
-  getWorkers
+  getWorkers,
+  updateProfile,
 };
