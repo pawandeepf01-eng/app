@@ -149,8 +149,43 @@ const forgotPassword = async (req, res) => {
 };
 
 
+const getWorkers = async (req, res) => {
+  try {
+    const { search = "", serviceType = "" } = req.query;
+
+    let filter = {
+      role: "worker",
+    };
+
+    if (serviceType) {
+      filter.serviceType = serviceType;
+    }
+
+    if (search) {
+      filter.name = {
+        $regex: search,
+        $options: "i",
+      };
+    }
+
+    const workers = await User.find(filter).select("-password");
+
+    res.status(200).json({
+      success: true,
+      count: workers.length,
+      workers,
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
 module.exports = {
   register,
   login,
   forgotPassword,
+  getWorkers
 };
