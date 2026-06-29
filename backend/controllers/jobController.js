@@ -38,11 +38,9 @@ const getJobs = async (req, res) => {
 
     let filter = {};
 
-    
     if (category) {
       filter.category = category;
     }
-
 
     if (search) {
       filter.$or = [
@@ -53,6 +51,7 @@ const getJobs = async (req, res) => {
     }
 
     const jobs = await Job.find(filter)
+      .populate("userId", "name")
       .sort({ createdAt: -1 })
       .skip(skip)
       .limit(limit);
@@ -75,5 +74,4 @@ const getJobs = async (req, res) => {
 module.exports = {
   createJob,
   getJobs,
-
 };
