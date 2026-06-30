@@ -16,7 +16,7 @@ router.post(
   createJob
 );
 
-router.get("/", getJobs);
+router.get("/",authMiddleware, getJobs);
 
 
 module.exports = router;

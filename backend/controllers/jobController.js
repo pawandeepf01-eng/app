@@ -38,13 +38,20 @@ const getJobs = async (req, res) => {
 
     let filter = {};
 
+    // Customer sees only their own jobs
+    if (req.user.role === "customer") {
+      filter.userId = req.user.id;
+    }
+
+    // Worker sees all jobs
+
     if (category) {
       filter.category = category;
     }
 
     if (search) {
       filter.$or = [
-        { jobTitle: { $regex: search, $options: "i" } },
+        { description: { $regex: search, $options: "i" } },
         { category: { $regex: search, $options: "i" } },
         { address: { $regex: search, $options: "i" } },
       ];
@@ -54,16 +61,19 @@ const getJobs = async (req, res) => {
       .populate("userId", "name")
       .sort({ createdAt: -1 })
       .skip(skip)
-      .limit(limit);
+      .limit(limit)
+      .lean();
 
     const total = await Job.countDocuments(filter);
 
-    res.json({
+    res.status(200).json({
       success: true,
       page,
       totalPages: Math.ceil(total / limit),
+      total,
       jobs,
     });
+
   } catch (error) {
     res.status(500).json({
       success: false,
