@@ -18,21 +18,29 @@ const userSchema = new mongoose.Schema(
       required: true,
     },
 
-   role: {
-  type: String,
-  enum: ["customer", "worker"],
-  required: true,
-},
+    role: {
+      type: String,
+      enum: ["customer", "worker"],
+      required: true,
+    },
 
     serviceType: {
       type: String,
       default: "",
     },
+
+    isAvailable: {
+      type: Boolean,
+      default: false,
+    },
+    likedBy: [
+  {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "User",
   },
-  { timestamps: true }
+],
+  },
+  { timestamps: true },
 );
 
-module.exports = mongoose.model(
-  "User",
-  userSchema
-);
+module.exports = mongoose.model("User", userSchema);

@@ -230,6 +230,99 @@ const getProfile = async (req, res) => {
   }
 };
 
+
+const updateAvailability = async (req, res) => {
+  try {
+    const { isAvailable } = req.body;
+
+    const user = await User.findById(req.user.id);
+
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: "User not found",
+      });
+    }
+
+    if (user.role !== "worker") {
+      return res.status(403).json({
+        success: false,
+        message: "Only workers can change availability",
+      });
+    }
+
+    user.isAvailable = isAvailable;
+
+    await user.save();
+
+    res.status(200).json({
+      success: true,
+      message: "Availability Updated Successfully",
+      user,
+    });
+
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
+
+const likeWorker = async (req, res) => {
+  try {
+    const workerId = req.params.workerId;
+    const customerId = req.user.id;
+
+    const worker = await User.findById(workerId);
+
+    if (!worker) {
+      return res.status(404).json({
+        success: false,
+        message: "Worker not found",
+      });
+    }
+
+    if (worker.role !== "worker") {
+      return res.status(400).json({
+        success: false,
+        message: "User is not a worker",
+      });
+    }
+
+    const alreadyLiked = worker.likedBy.includes(customerId);
+
+    if (alreadyLiked) {
+      worker.likedBy.pull(customerId);
+
+      await worker.save();
+
+      return res.status(200).json({
+        success: true,
+        message: "Worker Unliked",
+        isLiked: false,
+      });
+    }
+
+    worker.likedBy.push(customerId);
+
+    await worker.save();
+
+    res.status(200).json({
+      success: true,
+      message: "Worker Liked",
+      isLiked: true,
+    });
+
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
 module.exports = {
   register,
   login,
@@ -237,4 +330,6 @@ module.exports = {
   getWorkers,
   updateProfile,
   getProfile,
+  updateAvailability,
+  likeWorker,
 };
