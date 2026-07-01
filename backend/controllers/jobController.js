@@ -146,8 +146,73 @@ const bookJob = async (req, res) => {
     });
   }
 };
+
+
+const getMyAcceptedJobs = async (req, res) => {
+  try {
+    if (req.user.role !== "worker") {
+      return res.status(403).json({
+        success: false,
+        message: "Only workers can view accepted jobs",
+      });
+    }
+
+    const page = parseInt(req.query.page) || 1;
+    const limit = 10;
+    const skip = (page - 1) * limit;
+
+    const jobs = await Job.find({
+      workerId: req.user.id,
+    })
+      .populate("userId", "name phone")
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(limit);
+
+    const totalJobs = await Job.countDocuments({
+      workerId: req.user.id,
+    });
+
+    const totalPending = await Job.countDocuments({
+      workerId: req.user.id,
+      status: "Pending",
+    });
+
+    const totalAccepted = await Job.countDocuments({
+      workerId: req.user.id,
+      status: "Accepted",
+    });
+
+    const totalCompleted = await Job.countDocuments({
+      workerId: req.user.id,
+      status: "Completed",
+    });
+
+    res.status(200).json({
+      success: true,
+      page,
+      totalPages: Math.ceil(totalJobs / limit),
+
+      counts: {
+        totalJobs,
+        totalPending,
+        totalAccepted,
+        totalCompleted,
+      },
+
+      jobs,
+    });
+
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
 module.exports = {
   createJob,
   getJobs,
   bookJob,
+  getMyAcceptedJobs,
 };

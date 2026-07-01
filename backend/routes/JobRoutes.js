@@ -7,7 +7,8 @@ const upload = require("../middleware/upload");
 
 const {
   createJob, getJobs,
-  bookJob
+  bookJob,
+  getMyAcceptedJobs,
 } = require("../controllers/jobController");
 
 router.post(
@@ -25,5 +26,10 @@ router.put(
   bookJob
 );
 
+router.get(
+  "/my-accepted-jobs",
+  authMiddleware,
+  getMyAcceptedJobs
+);
 
 module.exports = router;
