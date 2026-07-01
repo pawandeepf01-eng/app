@@ -9,6 +9,7 @@ const {
   createJob, getJobs,
   bookJob,
   getMyAcceptedJobs,
+  deleteJob,
 } = require("../controllers/jobController");
 
 router.post(
@@ -30,6 +31,12 @@ router.get(
   "/my-accepted-jobs",
   authMiddleware,
   getMyAcceptedJobs
+);
+
+router.delete(
+  "/delete/:jobId",
+  authMiddleware,
+  deleteJob
 );
 
 module.exports = router;
