@@ -81,7 +81,73 @@ const getJobs = async (req, res) => {
     });
   }
 };
+
+const User = require("../models/User");
+
+const bookJob = async (req, res) => {
+  try {
+    const { jobId } = req.params;
+
+    // Only workers can accept jobs
+    if (req.user.role !== "worker") {
+      return res.status(403).json({
+        success: false,
+        message: "Only workers can accept jobs",
+      });
+    }
+
+    const worker = await User.findById(req.user.id);
+
+    if (!worker) {
+      return res.status(404).json({
+        success: false,
+        message: "Worker not found",
+      });
+    }
+
+    if (!worker.isAvailable) {
+      return res.status(400).json({
+        success: false,
+        message: "Worker is unavailable",
+      });
+    }
+
+    const job = await Job.findById(jobId);
+
+    if (!job) {
+      return res.status(404).json({
+        success: false,
+        message: "Job not found",
+      });
+    }
+
+    if (job.status !== "Pending") {
+      return res.status(400).json({
+        success: false,
+        message: "Job already accepted by another worker",
+      });
+    }
+
+    job.workerId = req.user.id;
+    job.status = "Accepted";
+
+    await job.save();
+
+    res.status(200).json({
+      success: true,
+      message: "Job accepted successfully",
+      job,
+    });
+
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
 module.exports = {
   createJob,
   getJobs,
+  bookJob,
 };

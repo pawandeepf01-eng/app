@@ -1,0 +1,121 @@
+const Booking = require("../models/Booking");
+const User = require("../models/User");
+
+const createBooking = async (req, res) => {
+  try {
+    const { workerId } = req.params;
+
+    const {
+      serviceType,
+      address,
+      date,
+      time,
+      description,
+    } = req.body;
+
+    // Only customers can book
+    if (req.user.role !== "customer") {
+      return res.status(403).json({
+        success: false,
+        message: "Only customers can book workers",
+      });
+    }
+
+    // Find worker
+    const worker = await User.findById(workerId);
+
+    if (!worker) {
+      return res.status(404).json({
+        success: false,
+        message: "Worker not found",
+      });
+    }
+
+    if (worker.role !== "worker") {
+      return res.status(400).json({
+        success: false,
+        message: "Selected user is not a worker",
+      });
+    }
+
+    if (!worker.isAvailable) {
+      return res.status(400).json({
+        success: false,
+        message: "Worker is unavailable",
+      });
+    }
+
+    // Prevent duplicate pending bookings
+    const alreadyBooked = await Booking.findOne({
+      customerId: req.user.id,
+      workerId,
+      status: "Pending",
+    });
+
+    if (alreadyBooked) {
+      return res.status(400).json({
+        success: false,
+        message: "You already have a pending booking with this worker",
+      });
+    }
+
+    const booking = await Booking.create({
+      customerId: req.user.id,
+      workerId,
+      serviceType,
+      address,
+      date,
+      time,
+      description,
+    });
+
+    res.status(201).json({
+      success: true,
+      message: "Booking created successfully",
+      booking,
+    });
+
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
+
+
+const getWorkerBookings = async (req, res) => {
+  try {
+
+    if (req.user.role !== "worker") {
+      return res.status(403).json({
+        success: false,
+        message: "Only workers can view bookings",
+      });
+    }
+
+    const bookings = await Booking.find({
+      workerId: req.user.id,
+    })
+      .populate("customerId", "name phone")
+      .sort({ createdAt: -1 });
+
+    res.status(200).json({
+      success: true,
+      total: bookings.length,
+      bookings,
+    });
+
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
+module.exports = {
+    createBooking,
+    getWorkerBookings,
+};

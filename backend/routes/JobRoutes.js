@@ -6,7 +6,8 @@ const authMiddleware = require("../middleware/authMiddleware");
 const upload = require("../middleware/upload");
 
 const {
-  createJob,getJobs
+  createJob, getJobs,
+  bookJob
 } = require("../controllers/jobController");
 
 router.post(
@@ -16,7 +17,13 @@ router.post(
   createJob
 );
 
-router.get("/",authMiddleware, getJobs);
+router.get("/", authMiddleware, getJobs);
+
+router.put(
+  "/book/:jobId",
+  authMiddleware,
+  bookJob
+);
 
 
 module.exports = router;
