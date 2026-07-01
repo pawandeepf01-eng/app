@@ -6,7 +6,9 @@ const authMiddleware = require("../middleware/authMiddleware");
 
 const {
     createBooking,
-    getWorkerBookings
+  getWorkerBookings,
+    acceptBooking,
+    rejectBooking,
 } = require("../controllers/bookingController");
 
 router.post(
@@ -18,6 +20,18 @@ router.get(
   "/worker",
   authMiddleware,
   getWorkerBookings
+);
+
+router.put(
+  "/accept/:bookingId",
+  authMiddleware,
+  acceptBooking
+);
+
+router.put(
+  "/reject/:bookingId",
+  authMiddleware,
+  rejectBooking
 );
 
 module.exports = router;

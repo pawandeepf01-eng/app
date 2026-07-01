@@ -110,7 +110,117 @@ const getWorkerBookings = async (req, res) => {
   }
 };
 
+
+
+const acceptBooking = async (req, res) => {
+  try {
+    const { bookingId } = req.params;
+
+    if (req.user.role !== "worker") {
+      return res.status(403).json({
+        success: false,
+        message: "Only workers can accept bookings",
+      });
+    }
+
+    const booking = await Booking.findById(bookingId);
+
+    if (!booking) {
+      return res.status(404).json({
+        success: false,
+        message: "Booking not found",
+      });
+    }
+
+    // Worker can accept only his own booking
+    if (booking.workerId.toString() !== req.user.id) {
+      return res.status(403).json({
+        success: false,
+        message: "Unauthorized",
+      });
+    }
+
+    if (booking.status !== "Pending") {
+      return res.status(400).json({
+        success: false,
+        message: "Booking already processed",
+      });
+    }
+
+    booking.status = "Accepted";
+
+    await booking.save();
+
+    res.status(200).json({
+      success: true,
+      message: "Booking accepted successfully",
+      booking,
+    });
+
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
+
+const rejectBooking = async (req, res) => {
+  try {
+    const { bookingId } = req.params;
+
+    if (req.user.role !== "worker") {
+      return res.status(403).json({
+        success: false,
+        message: "Only workers can reject bookings",
+      });
+    }
+
+    const booking = await Booking.findById(bookingId);
+
+    if (!booking) {
+      return res.status(404).json({
+        success: false,
+        message: "Booking not found",
+      });
+    }
+
+    if (booking.workerId.toString() !== req.user.id) {
+      return res.status(403).json({
+        success: false,
+        message: "Unauthorized",
+      });
+    }
+
+    if (booking.status !== "Pending") {
+      return res.status(400).json({
+        success: false,
+        message: "Booking already processed",
+      });
+    }
+
+    booking.status = "Rejected";
+
+    await booking.save();
+
+    res.status(200).json({
+      success: true,
+      message: "Booking rejected successfully",
+      booking,
+    });
+
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
 module.exports = {
     createBooking,
-    getWorkerBookings,
+  getWorkerBookings,
+    rejectBooking,
+    acceptBooking,
 };

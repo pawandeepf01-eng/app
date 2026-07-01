@@ -165,7 +165,7 @@ const getMyAcceptedJobs = async (req, res) => {
       workerId: req.user.id,
     })
       .populate("userId", "name phone")
-      .sort({ createdAt: -1 })
+      .sort({ updatedAt: -1 })
       .skip(skip)
       .limit(limit);
 
