@@ -9,11 +9,9 @@ const createBooking = async (req, res) => {
       serviceType,
       address,
       date,
-      time,
       description,
     } = req.body;
 
-    // Only customers can book
     if (req.user.role !== "customer") {
       return res.status(403).json({
         success: false,
@@ -21,7 +19,6 @@ const createBooking = async (req, res) => {
       });
     }
 
-    // Find worker
     const worker = await User.findById(workerId);
 
     if (!worker) {
@@ -45,7 +42,6 @@ const createBooking = async (req, res) => {
       });
     }
 
-    // Prevent duplicate pending bookings
     const alreadyBooked = await Booking.findOne({
       customerId: req.user.id,
       workerId,
@@ -65,7 +61,6 @@ const createBooking = async (req, res) => {
       serviceType,
       address,
       date,
-      time,
       description,
     });
 
