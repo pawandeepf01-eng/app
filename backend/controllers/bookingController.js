@@ -218,9 +218,40 @@ const rejectBooking = async (req, res) => {
   }
 };
 
+
+const getMyBookings = async (req, res) => {
+  try {
+    if (req.user.role !== "customer") {
+      return res.status(403).json({
+        success: false,
+        message: "Only customers can view their bookings",
+      });
+    }
+
+    const bookings = await Booking.find({
+      customerId: req.user.id,
+    })
+      .populate("workerId", "name phone serviceType")
+      .sort({ createdAt: -1 });
+
+    res.status(200).json({
+      success: true,
+      total: bookings.length,
+      bookings,
+    });
+
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
 module.exports = {
     createBooking,
   getWorkerBookings,
     rejectBooking,
-    acceptBooking,
+  acceptBooking,
+  getMyBookings,
 };

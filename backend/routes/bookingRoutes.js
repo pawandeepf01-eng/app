@@ -8,7 +8,8 @@ const {
     createBooking,
   getWorkerBookings,
     acceptBooking,
-    rejectBooking,
+  rejectBooking,
+  getMyBookings,
 } = require("../controllers/bookingController");
 
 router.post(
@@ -32,6 +33,11 @@ router.put(
   "/reject/:bookingId",
   authMiddleware,
   rejectBooking
+);
+router.get(
+  "/my-bookings",
+  authMiddleware,
+  getMyBookings
 );
 
 module.exports = router;
