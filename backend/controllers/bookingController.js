@@ -132,7 +132,6 @@ const acceptBooking = async (req, res) => {
       });
     }
 
-    // Worker can accept only his own booking
     if (booking.workerId.toString() !== req.user.id) {
       return res.status(403).json({
         success: false,
@@ -169,11 +168,19 @@ const acceptBooking = async (req, res) => {
 const rejectBooking = async (req, res) => {
   try {
     const { bookingId } = req.params;
+    const { rejectionReason } = req.body;
 
     if (req.user.role !== "worker") {
       return res.status(403).json({
         success: false,
         message: "Only workers can reject bookings",
+      });
+    }
+
+    if (!rejectionReason || rejectionReason.trim() === "") {
+      return res.status(400).json({
+        success: false,
+        message: "Rejection reason is required",
       });
     }
 
@@ -201,6 +208,7 @@ const rejectBooking = async (req, res) => {
     }
 
     booking.status = "Rejected";
+    booking.rejectionReason = rejectionReason;
 
     await booking.save();
 
@@ -217,6 +225,7 @@ const rejectBooking = async (req, res) => {
     });
   }
 };
+
 
 
 const getMyBookings = async (req, res) => {
@@ -237,7 +246,18 @@ const getMyBookings = async (req, res) => {
     res.status(200).json({
       success: true,
       total: bookings.length,
-      bookings,
+      bookings: bookings.map((booking) => ({
+        _id: booking._id,
+        worker: booking.workerId,
+        serviceType: booking.serviceType,
+        address: booking.address,
+        date: booking.date,
+        time: booking.time,
+        description: booking.description,
+        status: booking.status,
+        rejectionReason: booking.rejectionReason || "",
+        createdAt: booking.createdAt,
+      })),
     });
 
   } catch (error) {

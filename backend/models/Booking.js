@@ -42,6 +42,10 @@ const bookingSchema = new mongoose.Schema(
       enum: ["Pending", "Accepted", "Rejected", "Completed"],
       default: "Pending",
     },
+    rejectionReason: {
+  type: String,
+  default: "",
+},
   },
   { timestamps: true }
 );
