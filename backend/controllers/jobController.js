@@ -28,6 +28,64 @@ const createJob = async (req, res) => {
   }
 };
 
+const updateJob = async (req, res) => {
+  try {
+    const { jobId } = req.params;
+
+    const { description, category, address, date, time, budget } = req.body;
+
+    const job = await Job.findById(jobId);
+
+    if (!job) {
+      return res.status(404).json({
+        success: false,
+        message: "Job not found",
+      });
+    }
+
+    // Only the customer who created the job can update it
+    if (job.userId.toString() !== req.user.id) {
+      return res.status(403).json({
+        success: false,
+        message: "You are not authorized to update this job",
+      });
+    }
+
+    // Customer can update only if worker has not accepted
+    if (job.status !== "Pending") {
+      return res.status(400).json({
+        success: false,
+        message: "Job cannot be updated after a worker accepts it",
+      });
+    }
+
+    job.description = description;
+    job.category = category;
+    job.address = address;
+    job.date = date;
+    job.time = time;
+    job.budget = budget;
+
+    if (req.file) {
+      job.photo = req.file.path;
+    }
+
+    await job.save();
+
+    res.status(200).json({
+      success: true,
+      message: "Job Updated Successfully",
+      job,
+    });
+
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
 const getJobs = async (req, res) => {
   try {
     const page = parseInt(req.query.page) || 1;
@@ -254,4 +312,5 @@ module.exports = {
   bookJob,
   getMyAcceptedJobs,
   deleteJob,
+  updateJob,
 };
