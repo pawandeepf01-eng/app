@@ -5,12 +5,7 @@ const createBooking = async (req, res) => {
   try {
     const { workerId } = req.params;
 
-    const {
-      serviceType,
-      address,
-      date,
-      description,
-    } = req.body;
+    const { serviceType, address, date, description } = req.body;
 
     if (req.user.role !== "customer") {
       return res.status(403).json({
@@ -69,7 +64,6 @@ const createBooking = async (req, res) => {
       message: "Booking created successfully",
       booking,
     });
-
   } catch (error) {
     res.status(500).json({
       success: false,
@@ -78,11 +72,8 @@ const createBooking = async (req, res) => {
   }
 };
 
-
-
 const getWorkerBookings = async (req, res) => {
   try {
-
     if (req.user.role !== "worker") {
       return res.status(403).json({
         success: false,
@@ -101,7 +92,6 @@ const getWorkerBookings = async (req, res) => {
       total: bookings.length,
       bookings,
     });
-
   } catch (error) {
     res.status(500).json({
       success: false,
@@ -109,8 +99,6 @@ const getWorkerBookings = async (req, res) => {
     });
   }
 };
-
-
 
 const acceptBooking = async (req, res) => {
   try {
@@ -155,7 +143,6 @@ const acceptBooking = async (req, res) => {
       message: "Booking accepted successfully",
       booking,
     });
-
   } catch (error) {
     res.status(500).json({
       success: false,
@@ -163,7 +150,6 @@ const acceptBooking = async (req, res) => {
     });
   }
 };
-
 
 const rejectBooking = async (req, res) => {
   try {
@@ -217,7 +203,6 @@ const rejectBooking = async (req, res) => {
       message: "Booking rejected successfully",
       booking,
     });
-
   } catch (error) {
     res.status(500).json({
       success: false,
@@ -225,8 +210,6 @@ const rejectBooking = async (req, res) => {
     });
   }
 };
-
-
 
 const getMyBookings = async (req, res) => {
   try {
@@ -259,7 +242,59 @@ const getMyBookings = async (req, res) => {
         createdAt: booking.createdAt,
       })),
     });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
 
+const completeBooking = async (req, res) => {
+  try {
+    const { bookingId } = req.params;
+
+    if (req.user.role !== "worker") {
+      return res.status(403).json({
+        success: false,
+        message: "Only workers can complete bookings",
+      });
+    }
+
+    const booking = await Booking.findById(bookingId);
+
+    if (!booking) {
+      return res.status(404).json({
+        success: false,
+        message: "Booking not found",
+      });
+    }
+
+    // Check worker owns this booking
+    if (booking.workerId.toString() !== req.user.id) {
+      return res.status(403).json({
+        success: false,
+        message: "Unauthorized",
+      });
+    }
+
+    // Booking must be accepted first
+    if (booking.status !== "Accepted") {
+      return res.status(400).json({
+        success: false,
+        message: "Only accepted bookings can be completed",
+      });
+    }
+
+    booking.status = "Completed";
+
+    await booking.save();
+
+    res.status(200).json({
+      success: true,
+      message: "Booking marked as completed",
+      booking,
+    });
   } catch (error) {
     res.status(500).json({
       success: false,
@@ -269,9 +304,10 @@ const getMyBookings = async (req, res) => {
 };
 
 module.exports = {
-    createBooking,
+  createBooking,
   getWorkerBookings,
-    rejectBooking,
+  rejectBooking,
   acceptBooking,
   getMyBookings,
+  completeBooking,
 };
