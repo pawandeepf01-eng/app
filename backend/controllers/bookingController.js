@@ -254,7 +254,7 @@ const completeBooking = async (req, res) => {
   try {
     const { bookingId } = req.params;
 
-    // Only customer can complete
+    // Only customer can complete booking
     if (req.user.role !== "customer") {
       return res.status(403).json({
         success: false,
@@ -271,19 +271,28 @@ const completeBooking = async (req, res) => {
       });
     }
 
-    // Customer must own this booking
+    
+
     if (booking.customerId.toString() !== req.user.id) {
       return res.status(403).json({
         success: false,
         message: "Unauthorized",
+        bookingCustomerId: booking.customerId,
+        loggedInUser: req.user.id,
       });
     }
 
-    // Booking must be accepted first
+    if (booking.status === "Completed") {
+      return res.status(400).json({
+        success: false,
+        message: "Booking is already completed",
+      });
+    }
+
     if (booking.status !== "Accepted") {
       return res.status(400).json({
         success: false,
-        message: "Only accepted bookings can be marked as completed",
+        message: "Only accepted bookings can be completed",
       });
     }
 
@@ -296,6 +305,7 @@ const completeBooking = async (req, res) => {
       message: "Booking marked as completed",
       booking,
     });
+
   } catch (error) {
     res.status(500).json({
       success: false,
