@@ -254,10 +254,11 @@ const completeBooking = async (req, res) => {
   try {
     const { bookingId } = req.params;
 
-    if (req.user.role !== "worker") {
+    // Only customer can complete
+    if (req.user.role !== "customer") {
       return res.status(403).json({
         success: false,
-        message: "Only workers can complete bookings",
+        message: "Only customers can complete bookings",
       });
     }
 
@@ -270,8 +271,8 @@ const completeBooking = async (req, res) => {
       });
     }
 
-    // Check worker owns this booking
-    if (booking.workerId.toString() !== req.user.id) {
+    // Customer must own this booking
+    if (booking.customerId.toString() !== req.user.id) {
       return res.status(403).json({
         success: false,
         message: "Unauthorized",
@@ -282,7 +283,7 @@ const completeBooking = async (req, res) => {
     if (booking.status !== "Accepted") {
       return res.status(400).json({
         success: false,
-        message: "Only accepted bookings can be completed",
+        message: "Only accepted bookings can be marked as completed",
       });
     }
 
