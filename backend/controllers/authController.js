@@ -149,6 +149,8 @@ const forgotPassword = async (req, res) => {
 };
 
 
+const Review = require("../models/Review");
+
 const getWorkers = async (req, res) => {
   try {
     const { search = "", serviceType = "" } = req.query;
@@ -175,10 +177,25 @@ const getWorkers = async (req, res) => {
         totalReviews: -1,
       });
 
+    const workersWithReviews = await Promise.all(
+      workers.map(async (worker) => {
+        const reviews = await Review.find({
+          workerId: worker._id,
+        })
+          .populate("customerId", "name")
+          .sort({ createdAt: -1 });
+
+        return {
+          ...worker.toObject(),
+          reviews,
+        };
+      })
+    );
+
     res.status(200).json({
       success: true,
-      count: workers.length,
-      workers,
+      count: workersWithReviews.length,
+      workers: workersWithReviews,
     });
 
   } catch (error) {
@@ -188,7 +205,6 @@ const getWorkers = async (req, res) => {
     });
   }
 };
-
 
 const updateProfile = async (req, res) => {
   try {
