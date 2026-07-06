@@ -168,13 +168,19 @@ const getWorkers = async (req, res) => {
       };
     }
 
-    const workers = await User.find(filter).select("-password");
+    const workers = await User.find(filter)
+      .select("-password")
+      .sort({
+        averageRating: -1,
+        totalReviews: -1,
+      });
 
     res.status(200).json({
       success: true,
       count: workers.length,
       workers,
     });
+
   } catch (error) {
     res.status(500).json({
       success: false,

@@ -28,17 +28,26 @@ const userSchema = new mongoose.Schema(
       type: String,
       default: "",
     },
+    averageRating: {
+      type: Number,
+      default: 0,
+    },
+
+    totalReviews: {
+      type: Number,
+      default: 0,
+    },
 
     isAvailable: {
       type: Boolean,
       default: false,
     },
     likedBy: [
-  {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: "User",
-  },
-],
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "User",
+      },
+    ],
   },
   { timestamps: true },
 );
