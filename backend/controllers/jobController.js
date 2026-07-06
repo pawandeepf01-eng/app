@@ -306,6 +306,61 @@ const deleteJob = async (req, res) => {
   }
 };
 
+const completeJob = async (req, res) => {
+  try {
+    const { jobId } = req.params;
+
+    // Only customer can complete the job
+    if (req.user.role !== "customer") {
+      return res.status(403).json({
+        success: false,
+        message: "Only customers can complete jobs",
+      });
+    }
+
+    const job = await Job.findById(jobId);
+
+    if (!job) {
+      return res.status(404).json({
+        success: false,
+        message: "Job not found",
+      });
+    }
+
+    // Check job owner
+    if (job.userId.toString() !== req.user.id) {
+      return res.status(403).json({
+        success: false,
+        message: "Unauthorized",
+      });
+    }
+
+    // Worker must be accepted first
+    if (job.status !== "Accepted") {
+      return res.status(400).json({
+        success: false,
+        message: "Only accepted jobs can be completed",
+      });
+    }
+
+    job.status = "Completed";
+
+    await job.save();
+
+    res.status(200).json({
+      success: true,
+      message: "Job marked as completed successfully",
+      job,
+    });
+
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
 module.exports = {
   createJob,
   getJobs,
@@ -313,4 +368,5 @@ module.exports = {
   getMyAcceptedJobs,
   deleteJob,
   updateJob,
+  completeJob,
 };

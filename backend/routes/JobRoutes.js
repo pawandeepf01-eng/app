@@ -11,6 +11,7 @@ const {
   getMyAcceptedJobs,
   deleteJob,
   updateJob,
+  completeJob,
 } = require("../controllers/jobController");
 
 router.post(
@@ -45,6 +46,12 @@ router.put(
   authMiddleware,
   upload.single("photo"),
   updateJob
+);
+
+router.put(
+  "/complete/:jobId",
+  authMiddleware,
+  completeJob
 );
 
 module.exports = router;
