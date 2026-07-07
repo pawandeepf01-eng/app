@@ -96,12 +96,10 @@ const getJobs = async (req, res) => {
 
     let filter = {};
 
-    // Customer sees only their own jobs
     if (req.user.role === "customer") {
       filter.userId = req.user.id;
     }
 
-    // Worker sees all jobs
 
     if (category) {
       filter.category = category;
@@ -116,7 +114,7 @@ const getJobs = async (req, res) => {
     }
 
     const jobs = await Job.find(filter)
-      .populate("userId", "name")
+      .populate("userId", "name phone")
       .sort({ createdAt: -1 })
       .skip(skip)
       .limit(limit)
@@ -146,7 +144,6 @@ const bookJob = async (req, res) => {
   try {
     const { jobId } = req.params;
 
-    // Only workers can accept jobs
     if (req.user.role !== "worker") {
       return res.status(403).json({
         success: false,
@@ -283,7 +280,6 @@ const deleteJob = async (req, res) => {
       });
     }
 
-    // Only the customer who created the job can delete it
     if (job.userId.toString() !== req.user.id) {
       return res.status(403).json({
         success: false,
@@ -310,7 +306,6 @@ const completeJob = async (req, res) => {
   try {
     const { jobId } = req.params;
 
-    // Only customer can complete the job
     if (req.user.role !== "customer") {
       return res.status(403).json({
         success: false,
@@ -327,7 +322,6 @@ const completeJob = async (req, res) => {
       });
     }
 
-    // Check job owner
     if (job.userId.toString() !== req.user.id) {
       return res.status(403).json({
         success: false,
@@ -335,7 +329,6 @@ const completeJob = async (req, res) => {
       });
     }
 
-    // Worker must be accepted first
     if (job.status !== "Accepted") {
       return res.status(400).json({
         success: false,
