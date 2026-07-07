@@ -87,9 +87,15 @@ const getWorkerBookings = async (req, res) => {
       .populate("customerId", "name phone")
       .sort({ createdAt: -1 });
 
+    const pendingCount = await Booking.countDocuments({
+      workerId: req.user.id,
+      status: "pending",
+    });
+
     res.status(200).json({
       success: true,
       total: bookings.length,
+      pendingCount,
       bookings,
     });
   } catch (error) {
