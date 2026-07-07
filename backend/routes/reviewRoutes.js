@@ -7,9 +7,9 @@ const authMiddleware=require("../middleware/authMiddleware");
 const {addReview}=require("../controllers/reviewController");
 
 router.post(
-"/:bookingId",
-authMiddleware,
-addReview
+  "/:workerId",
+  authMiddleware,
+  addReview
 );
 
 module.exports=router;
