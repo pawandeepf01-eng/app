@@ -89,7 +89,7 @@ const getWorkerBookings = async (req, res) => {
 
     const pendingCount = await Booking.countDocuments({
       workerId: req.user.id,
-      status: "pending",
+      status: "Pending",
     });
 
     res.status(200).json({
