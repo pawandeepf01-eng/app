@@ -11,6 +11,7 @@ const {
   rejectBooking,
   getMyBookings,
   completeBooking,
+  updateBooking,
 } = require("../controllers/bookingController");
 
 router.post("/create/:workerId", authMiddleware, createBooking);
@@ -21,5 +22,5 @@ router.put("/accept/:bookingId", authMiddleware, acceptBooking);
 router.put("/reject/:bookingId", authMiddleware, rejectBooking);
 router.get("/my-bookings", authMiddleware, getMyBookings);
 router.put("/complete/:bookingId", authMiddleware, completeBooking);
-
+router.put("/update/:bookingId", authMiddleware, updateBooking);
 module.exports = router;

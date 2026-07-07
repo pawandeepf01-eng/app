@@ -314,6 +314,73 @@ const completeBooking = async (req, res) => {
   }
 };
 
+
+
+const updateBooking = async (req, res) => {
+  try {
+    const { bookingId } = req.params;
+
+    const {
+      serviceType,
+      address,
+      date,
+      time,
+      description,
+    } = req.body;
+
+    if (req.user.role !== "customer") {
+      return res.status(403).json({
+        success: false,
+        message: "Only customers can update bookings",
+      });
+    }
+
+    const booking = await Booking.findById(bookingId);
+
+    if (!booking) {
+      return res.status(404).json({
+        success: false,
+        message: "Booking not found",
+      });
+    }
+
+    if (booking.customerId.toString() !== req.user.id) {
+      return res.status(403).json({
+        success: false,
+        message: "Unauthorized",
+      });
+    }
+
+    if (booking.status !== "Pending") {
+      return res.status(400).json({
+        success: false,
+        message: "Booking cannot be updated after it has been accepted or rejected",
+      });
+    }
+
+    booking.serviceType = serviceType || booking.serviceType;
+    booking.address = address || booking.address;
+    booking.date = date || booking.date;
+    booking.time = time || booking.time;
+    booking.description = description || booking.description;
+
+    await booking.save();
+
+    res.status(200).json({
+      success: true,
+      message: "Booking updated successfully",
+      booking,
+    });
+
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
+
 module.exports = {
   createBooking,
   getWorkerBookings,
@@ -321,4 +388,5 @@ module.exports = {
   acceptBooking,
   getMyBookings,
   completeBooking,
+  updateBooking,
 };
