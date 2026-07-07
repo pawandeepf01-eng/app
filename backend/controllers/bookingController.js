@@ -106,6 +106,54 @@ const getWorkerBookings = async (req, res) => {
   }
 };
 
+const deleteBooking = async (req, res) => {
+  try {
+    const { bookingId } = req.params;
+
+    if (req.user.role !== "customer") {
+      return res.status(403).json({
+        success: false,
+        message: "Only customers can delete booking requests",
+      });
+    }
+
+    const booking = await Booking.findById(bookingId);
+
+    if (!booking) {
+      return res.status(404).json({
+        success: false,
+        message: "Booking not found",
+      });
+    }
+
+    if (booking.customerId.toString() !== req.user.id) {
+      return res.status(403).json({
+        success: false,
+        message: "Unauthorized",
+      });
+    }
+
+    if (booking.status !== "Pending") {
+      return res.status(400).json({
+        success: false,
+        message: "Only pending booking requests can be deleted",
+      });
+    }
+
+    await Booking.findByIdAndDelete(bookingId);
+
+    res.status(200).json({
+      success: true,
+      message: "Booking request deleted successfully",
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
 const acceptBooking = async (req, res) => {
   try {
     const { bookingId } = req.params;
@@ -277,8 +325,6 @@ const completeBooking = async (req, res) => {
       });
     }
 
-    
-
     if (booking.customerId.toString() !== req.user.id) {
       return res.status(403).json({
         success: false,
@@ -311,7 +357,6 @@ const completeBooking = async (req, res) => {
       message: "Booking marked as completed",
       booking,
     });
-
   } catch (error) {
     res.status(500).json({
       success: false,
@@ -320,19 +365,11 @@ const completeBooking = async (req, res) => {
   }
 };
 
-
-
 const updateBooking = async (req, res) => {
   try {
     const { bookingId } = req.params;
 
-    const {
-      serviceType,
-      address,
-      date,
-      time,
-      description,
-    } = req.body;
+    const { serviceType, address, date, time, description } = req.body;
 
     if (req.user.role !== "customer") {
       return res.status(403).json({
@@ -360,7 +397,8 @@ const updateBooking = async (req, res) => {
     if (booking.status !== "Pending") {
       return res.status(400).json({
         success: false,
-        message: "Booking cannot be updated after it has been accepted or rejected",
+        message:
+          "Booking cannot be updated after it has been accepted or rejected",
       });
     }
 
@@ -377,7 +415,6 @@ const updateBooking = async (req, res) => {
       message: "Booking updated successfully",
       booking,
     });
-
   } catch (error) {
     res.status(500).json({
       success: false,
@@ -385,7 +422,6 @@ const updateBooking = async (req, res) => {
     });
   }
 };
-
 
 module.exports = {
   createBooking,
@@ -395,4 +431,5 @@ module.exports = {
   getMyBookings,
   completeBooking,
   updateBooking,
+  deleteBooking
 };
