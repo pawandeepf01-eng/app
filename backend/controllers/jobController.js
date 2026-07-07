@@ -115,6 +115,7 @@ const getJobs = async (req, res) => {
 
     const jobs = await Job.find(filter)
       .populate("userId", "name phone")
+       .populate("workerId", "name phone")
       .sort({ createdAt: -1 })
       .skip(skip)
       .limit(limit)
