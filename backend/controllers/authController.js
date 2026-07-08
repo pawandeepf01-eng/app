@@ -66,7 +66,7 @@ const register = async (req, res) => {
 
 const login = async (req, res) => {
   try {
-    const { phone, password } = req.body;
+    const { phone, password ,fcmToken} = req.body;
 
     const user = await User.findOne({
       phone,
@@ -90,6 +90,11 @@ const login = async (req, res) => {
         success: false,
         message: "Invalid Password",
       });
+    }
+
+      if (fcmToken) {
+      user.fcmToken = fcmToken;
+      await user.save();
     }
 
     const token = jwt.sign(
