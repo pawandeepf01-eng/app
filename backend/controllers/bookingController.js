@@ -201,6 +201,18 @@ const acceptBooking = async (req, res) => {
 
     await booking.save();
 
+    const customer = await User.findById(booking.customerId);
+
+
+    if (customer?.fcmToken) {
+      await sendNotification(
+        customer.fcmToken,
+        "Booking Accepted",
+        "Your booking request has been accepted by the worker."
+      );
+    }
+
+
     res.status(200).json({
       success: true,
       message: "Booking accepted successfully",
