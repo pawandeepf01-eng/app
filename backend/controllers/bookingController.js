@@ -1,5 +1,6 @@
 const Booking = require("../models/Booking");
 const User = require("../models/User");
+const sendNotification = require("../utils/sendNotification");
 
 const createBooking = async (req, res) => {
   try {
