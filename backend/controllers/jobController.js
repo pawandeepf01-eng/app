@@ -43,7 +43,6 @@ const updateJob = async (req, res) => {
       });
     }
 
-    // Only the customer who created the job can update it
     if (job.userId.toString() !== req.user.id) {
       return res.status(403).json({
         success: false,
@@ -51,7 +50,6 @@ const updateJob = async (req, res) => {
       });
     }
 
-    // Customer can update only if worker has not accepted
     if (job.status !== "Pending") {
       return res.status(400).json({
         success: false,
@@ -72,12 +70,23 @@ const updateJob = async (req, res) => {
 
     await job.save();
 
+    if (job.workerId) {
+      const worker = await User.findById(job.workerId);
+
+      if (worker?.fcmToken) {
+        await sendNotification(
+          worker.fcmToken,
+          "Job Updated",
+          "The customer has updated the job details.",
+        );
+      }
+    }
+
     res.status(200).json({
       success: true,
       message: "Job Updated Successfully",
       job,
     });
-
   } catch (error) {
     res.status(500).json({
       success: false,
@@ -100,7 +109,6 @@ const getJobs = async (req, res) => {
       filter.userId = req.user.id;
     }
 
-
     if (category) {
       filter.category = category;
     }
@@ -115,7 +123,7 @@ const getJobs = async (req, res) => {
 
     const jobs = await Job.find(filter)
       .populate("userId", "name phone")
-       .populate("workerId", "name phone")
+      .populate("workerId", "name phone")
       .sort({ createdAt: -1 })
       .skip(skip)
       .limit(limit)
@@ -130,7 +138,6 @@ const getJobs = async (req, res) => {
       total,
       jobs,
     });
-
   } catch (error) {
     res.status(500).json({
       success: false,
@@ -189,12 +196,22 @@ const bookJob = async (req, res) => {
 
     await job.save();
 
+    const worker = await User.findById(req.user.id);
+    const customer = await User.findById(job.userId);
+
+    if (customer?.fcmToken) {
+      await sendNotification(
+        customer.fcmToken,
+        "Job Accepted",
+        `${worker.name} has accepted your job request.`,
+      );
+    }
+
     res.status(200).json({
       success: true,
       message: "Job accepted successfully",
       job,
     });
-
   } catch (error) {
     res.status(500).json({
       success: false,
@@ -202,7 +219,6 @@ const bookJob = async (req, res) => {
     });
   }
 };
-
 
 const getMyAcceptedJobs = async (req, res) => {
   try {
@@ -258,7 +274,6 @@ const getMyAcceptedJobs = async (req, res) => {
 
       jobs,
     });
-
   } catch (error) {
     res.status(500).json({
       success: false,
@@ -266,7 +281,6 @@ const getMyAcceptedJobs = async (req, res) => {
     });
   }
 };
-
 
 const deleteJob = async (req, res) => {
   try {
@@ -290,11 +304,22 @@ const deleteJob = async (req, res) => {
 
     await Job.findByIdAndDelete(jobId);
 
+    if (job.workerId) {
+      const worker = await User.findById(job.workerId);
+
+      if (worker?.fcmToken) {
+        await sendNotification(
+          worker.fcmToken,
+          "Job Cancelled",
+          "The customer has cancelled the job.",
+        );
+      }
+    }
+
     res.status(200).json({
       success: true,
       message: "Job deleted successfully",
     });
-
   } catch (error) {
     res.status(500).json({
       success: false,
@@ -341,12 +366,21 @@ const completeJob = async (req, res) => {
 
     await job.save();
 
+    const worker = await User.findById(job.workerId);
+
+    if (worker?.fcmToken) {
+      await sendNotification(
+        worker.fcmToken,
+        "Job Completed",
+        "The customer has marked the job as completed.",
+      );
+    }
+
     res.status(200).json({
       success: true,
       message: "Job marked as completed successfully",
       job,
     });
-
   } catch (error) {
     res.status(500).json({
       success: false,

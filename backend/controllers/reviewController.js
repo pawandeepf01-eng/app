@@ -2,8 +2,6 @@ const Review = require("../models/Review");
 const Booking = require("../models/Booking");
 const User = require("../models/User");
 
-
-
 const addReview = async (req, res) => {
   try {
     const { workerId } = req.params;
@@ -44,13 +42,22 @@ const addReview = async (req, res) => {
       totalReviews,
     });
 
+    const customer = await User.findById(req.user.id);
+
+    if (worker?.fcmToken) {
+      await sendNotification(
+        worker.fcmToken,
+        "New Review ⭐",
+        `${customer.name} gave you ${rating}⭐: "${review}"`,
+      );
+    }
+
     res.status(201).json({
       success: true,
       message: "Review submitted successfully",
       averageRating: Number(averageRating.toFixed(1)),
       totalReviews,
     });
-
   } catch (error) {
     res.status(500).json({
       success: false,
@@ -60,4 +67,3 @@ const addReview = async (req, res) => {
 };
 
 module.exports = { addReview };
-

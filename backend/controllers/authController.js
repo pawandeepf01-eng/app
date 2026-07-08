@@ -2,17 +2,9 @@ const User = require("../models/User");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 
-
 const register = async (req, res) => {
   try {
-    const {
-      name,
-      phone,
-      password,
-      role,
-      serviceType,
-      fcmToken
-    } = req.body;
+    const { name, phone, password, role, serviceType, fcmToken } = req.body;
 
     const exists = await User.findOne({ phone });
 
@@ -23,10 +15,7 @@ const register = async (req, res) => {
       });
     }
 
-    const hashedPassword = await bcrypt.hash(
-      password,
-      10
-    );
+    const hashedPassword = await bcrypt.hash(password, 10);
 
     const user = await User.create({
       name,
@@ -34,7 +23,7 @@ const register = async (req, res) => {
       password: hashedPassword,
       role,
       serviceType,
-      fcmToken
+      fcmToken,
     });
 
     const token = jwt.sign(
@@ -45,7 +34,7 @@ const register = async (req, res) => {
       process.env.JWT_SECRET,
       {
         expiresIn: "7d",
-      }
+      },
     );
 
     res.status(201).json({
@@ -54,7 +43,6 @@ const register = async (req, res) => {
       token,
       user,
     });
-
   } catch (error) {
     res.status(500).json({
       success: false,
@@ -63,10 +51,9 @@ const register = async (req, res) => {
   }
 };
 
-
 const login = async (req, res) => {
   try {
-    const { phone, password ,fcmToken} = req.body;
+    const { phone, password, fcmToken } = req.body;
 
     const user = await User.findOne({
       phone,
@@ -79,11 +66,7 @@ const login = async (req, res) => {
       });
     }
 
-    const match =
-      await bcrypt.compare(
-        password,
-        user.password
-      );
+    const match = await bcrypt.compare(password, user.password);
 
     if (!match) {
       return res.status(400).json({
@@ -92,7 +75,7 @@ const login = async (req, res) => {
       });
     }
 
-      if (fcmToken) {
+    if (fcmToken) {
       user.fcmToken = fcmToken;
       await user.save();
     }
@@ -105,7 +88,7 @@ const login = async (req, res) => {
       process.env.JWT_SECRET,
       {
         expiresIn: "7d",
-      }
+      },
     );
 
     res.json({
@@ -134,10 +117,7 @@ const forgotPassword = async (req, res) => {
       });
     }
 
-    const hashedPassword = await bcrypt.hash(
-      newPassword,
-      10
-    );
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
 
     user.password = hashedPassword;
 
@@ -154,7 +134,6 @@ const forgotPassword = async (req, res) => {
     });
   }
 };
-
 
 const Review = require("../models/Review");
 
@@ -177,12 +156,10 @@ const getWorkers = async (req, res) => {
       };
     }
 
-    const workers = await User.find(filter)
-      .select("-password")
-      .sort({
-        averageRating: -1,
-        totalReviews: -1,
-      });
+    const workers = await User.find(filter).select("-password").sort({
+      averageRating: -1,
+      totalReviews: -1,
+    });
 
     const workersWithReviews = await Promise.all(
       workers.map(async (worker) => {
@@ -196,7 +173,7 @@ const getWorkers = async (req, res) => {
           ...worker.toObject(),
           reviews,
         };
-      })
+      }),
     );
 
     res.status(200).json({
@@ -204,7 +181,6 @@ const getWorkers = async (req, res) => {
       count: workersWithReviews.length,
       workers: workersWithReviews,
     });
-
   } catch (error) {
     res.status(500).json({
       success: false,
@@ -226,7 +202,7 @@ const updateProfile = async (req, res) => {
       },
       {
         new: true,
-      }
+      },
     ).select("-password");
 
     res.status(200).json({
@@ -241,7 +217,6 @@ const updateProfile = async (req, res) => {
     });
   }
 };
-
 
 const getProfile = async (req, res) => {
   try {
@@ -258,7 +233,6 @@ const getProfile = async (req, res) => {
     });
   }
 };
-
 
 const updateAvailability = async (req, res) => {
   try {
@@ -289,7 +263,6 @@ const updateAvailability = async (req, res) => {
       message: "Availability Updated Successfully",
       user,
     });
-
   } catch (error) {
     res.status(500).json({
       success: false,
@@ -297,7 +270,6 @@ const updateAvailability = async (req, res) => {
     });
   }
 };
-
 
 const likeWorker = async (req, res) => {
   try {
@@ -338,12 +310,21 @@ const likeWorker = async (req, res) => {
 
     await worker.save();
 
+    const customer = await User.findById(req.user.id);
+
+    if (worker?.fcmToken) {
+      await sendNotification(
+        worker.fcmToken,
+        "New Like ❤️",
+        `${customer.name} liked your profile.`,
+      );
+    }
+
     res.status(200).json({
       success: true,
       message: "Worker Liked",
       isLiked: true,
     });
-
   } catch (error) {
     res.status(500).json({
       success: false,
