@@ -11,6 +11,7 @@ const register = async (req, res) => {
       password,
       role,
       serviceType,
+      fcmToken
     } = req.body;
 
     const exists = await User.findOne({ phone });
@@ -33,6 +34,7 @@ const register = async (req, res) => {
       password: hashedPassword,
       role,
       serviceType,
+      fcmToken
     });
 
     const token = jwt.sign(
