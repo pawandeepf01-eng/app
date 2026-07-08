@@ -59,14 +59,13 @@ const createBooking = async (req, res) => {
       date,
       description,
     });
-    // Send notification to worker
-if (worker.fcmToken) {
-  await sendNotification(
-    worker.fcmToken,
-    "New Booking",
-    "You have received a new booking request."
-  );
-}
+    if (worker.fcmToken) {
+      await sendNotification(
+        worker.fcmToken,
+        "New Booking",
+        "You have received a new booking request.",
+      );
+    }
 
     res.status(201).json({
       success: true,
@@ -149,8 +148,17 @@ const deleteBooking = async (req, res) => {
       });
     }
 
+    const worker = await User.findById(booking.workerId);
+
     await Booking.findByIdAndDelete(bookingId);
 
+    if (worker?.fcmToken) {
+      await sendNotification(
+        worker.fcmToken,
+        "Booking Cancelled",
+        "The customer cancelled the booking request.",
+      );
+    }
     res.status(200).json({
       success: true,
       message: "Booking request deleted successfully",
@@ -203,15 +211,13 @@ const acceptBooking = async (req, res) => {
 
     const customer = await User.findById(booking.customerId);
 
-
     if (customer?.fcmToken) {
       await sendNotification(
         customer.fcmToken,
         "Booking Accepted",
-        "Your booking request has been accepted by the worker."
+        "Your booking request has been accepted by the worker.",
       );
     }
-
 
     res.status(200).json({
       success: true,
@@ -272,6 +278,15 @@ const rejectBooking = async (req, res) => {
     booking.rejectionReason = rejectionReason;
 
     await booking.save();
+    const customer = await User.findById(booking.customerId);
+
+    if (customer?.fcmToken) {
+      await sendNotification(
+        customer.fcmToken,
+        "Booking Rejected",
+        `Your booking request was rejected. Reason: ${rejectionReason}`,
+      );
+    }
 
     res.status(200).json({
       success: true,
@@ -329,7 +344,6 @@ const completeBooking = async (req, res) => {
   try {
     const { bookingId } = req.params;
 
-    // Only customer can complete booking
     if (req.user.role !== "customer") {
       return res.status(403).json({
         success: false,
@@ -372,6 +386,15 @@ const completeBooking = async (req, res) => {
     booking.status = "Completed";
 
     await booking.save();
+    const worker = await User.findById(booking.workerId);
+
+    if (worker?.fcmToken) {
+      await sendNotification(
+        worker.fcmToken,
+        "Service Completed",
+        "The customer has marked this booking as completed.",
+      );
+    }
 
     res.status(200).json({
       success: true,
@@ -430,6 +453,15 @@ const updateBooking = async (req, res) => {
     booking.description = description || booking.description;
 
     await booking.save();
+    const worker = await User.findById(booking.workerId);
+
+    if (worker?.fcmToken) {
+      await sendNotification(
+        worker.fcmToken,
+        "Booking Updated",
+        "The customer has updated the booking details. Please review the changes.",
+      );
+    }
 
     res.status(200).json({
       success: true,
@@ -452,5 +484,5 @@ module.exports = {
   getMyBookings,
   completeBooking,
   updateBooking,
-  deleteBooking
+  deleteBooking,
 };
