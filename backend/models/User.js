@@ -37,6 +37,10 @@ const userSchema = new mongoose.Schema(
       type: Number,
       default: 0,
     },
+    fcmToken: {
+      type: String,
+      default: "",
+    },
 
     isAvailable: {
       type: Boolean,
