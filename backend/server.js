@@ -10,7 +10,6 @@ const jobRoutes = require("./routes/JobRoutes");
 const bookingRoutes = require("./routes/bookingRoutes");
 const reviewRoutes=require("./routes/reviewRoutes");
 const feedbackRoutes = require("./routes/feedbackRoutes");
-const notificationRoutes=require("./routes/notificationRoutes");
 
 dotenv.config();
 
@@ -26,7 +25,6 @@ app.use("/api/jobs", jobRoutes);
 app.use("/api/bookings", bookingRoutes);
 app.use("/api/reviews",reviewRoutes);
 app.use("/api/feedback", feedbackRoutes);
-app.use("/api/notification",notificationRoutes);
 
 app.get("/", (req, res) => {
   res.send("API Running...");
