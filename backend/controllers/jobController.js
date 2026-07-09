@@ -1,4 +1,6 @@
 const Job = require("../models/job");
+const sendNotification = require("../utils/sendNotification");
+
 
 const createJob = async (req, res) => {
   try {
@@ -196,7 +198,6 @@ const bookJob = async (req, res) => {
 
     await job.save();
 
-    const worker = await User.findById(req.user.id);
     const customer = await User.findById(job.userId);
 
     if (customer?.fcmToken) {
