@@ -60,11 +60,14 @@ const createBooking = async (req, res) => {
       description,
     });
     if (worker.fcmToken) {
-      await sendNotification(
-        worker.fcmToken,
-        "New Booking",
-        "You have received a new booking request.",
-      );
+      await sendNotification({
+        userId: worker._id,
+        token: worker.fcmToken,
+        title: "New Booking",
+        body: "You have received a new booking request.",
+        type: "booking",
+        referenceId: booking._id,
+      });
     }
 
     res.status(201).json({

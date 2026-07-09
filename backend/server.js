@@ -8,11 +8,10 @@ const connectDB = require("./config/db");
 const authRoutes = require("./routes/authRoutes");
 const jobRoutes = require("./routes/JobRoutes");
 const bookingRoutes = require("./routes/bookingRoutes");
-const reviewRoutes=require("./routes/reviewRoutes");
+const reviewRoutes = require("./routes/reviewRoutes");
 const feedbackRoutes = require("./routes/feedbackRoutes");
-
+const notificationRoutes = require("./routes/notificationRoutes");
 dotenv.config();
-
 
 const app = express();
 
@@ -23,13 +22,13 @@ app.use(express.json());
 app.use("/api/auth", authRoutes);
 app.use("/api/jobs", jobRoutes);
 app.use("/api/bookings", bookingRoutes);
-app.use("/api/reviews",reviewRoutes);
+app.use("/api/reviews", reviewRoutes);
 app.use("/api/feedback", feedbackRoutes);
+app.use("/api/notifications", notificationRoutes);
 
 app.get("/", (req, res) => {
   res.send("API Running...");
 });
-
 
 const PORT = process.env.PORT || 5000;
 
