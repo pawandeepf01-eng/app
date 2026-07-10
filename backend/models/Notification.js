@@ -26,6 +26,7 @@ const notificationSchema = new mongoose.Schema(
         "job",
         "review",
         "like",
+        "feedback",
         "system",
       ],
       default: "system",
